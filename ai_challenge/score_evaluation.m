@@ -11,7 +11,7 @@ num_deployments = 50;
 absolute_error = cell(length(scenarios), num_deployments);
 absolute_error_aps = cell(length(scenarios), num_deployments);
 
-name_participant = 'net_intels_5';
+name_participant = 'ramon';
 
 % Path to folders containing output and input files
 solution_path = 'output_simulator/processed_output/';
@@ -23,9 +23,9 @@ input_nodes_path = 'input_node_files_test/';
 %% Process each file individually
 for sceid=1:length(scenarios)
     
-    disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+    %disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
     disp(['%          SCENARIO ' num2str(sceid) '          %'])
-    disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+    %disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
         
     filesSolution = dir([solution_path 'solution_' scenarios{sceid} '/*.csv']);
     filesParticipant = dir([proposals_path name_participant '_' scenarios{sceid} '/*.csv']);
@@ -33,7 +33,7 @@ for sceid=1:length(scenarios)
     
     for k=1:length(filesParticipant)    
         
-        disp([' - Evaluating deployment ' num2str(k) '...'])
+        %disp([' - Evaluating deployment ' num2str(k) '...'])
         
         % Convert the content of each file to an array 
         outputFileName = filesParticipant(k).name;
@@ -119,6 +119,7 @@ for sceid=1:length(scenarios)
     mean_error(sceid) = abs(mean(stacked_error{sceid}));
     std_error(sceid) = std(stacked_error{sceid});
     rmse(sceid) = sqrt(mean(stacked_error{sceid}.^2));
+    mse(sceid) = mean(stacked_error{sceid}.^2);
 end
 
 % %% Plot CDFs
@@ -155,15 +156,15 @@ end
 
 %% Display table with average results
 disp('-----------------------------------')
-disp('| SCE_ID |MAE [Mbps]|RMSE [Mbps^2]|')
+disp('| SCE_ID |MAE [Mbps]|RMSE [Mbps^2]|MSE [Mbps^2]|')
 disp('-----------------------------------')
-disp(['|  Sce1  |  ' num2str(mean_error(1)) '  |   ' num2str(rmse(1)) '    |'])
+disp(['|  Sce1  |  ' num2str(mean_error(1)) '  |   ' num2str(rmse(1)) '    |'  num2str(mse(1)) '    |'])
 disp('-----------------------------------')
-disp(['|  Sce2  |  ' num2str(mean_error(2)) '  |   ' num2str(rmse(2)) '    |'])
+disp(['|  Sce2  |  ' num2str(mean_error(2)) '  |   ' num2str(rmse(2)) '    |'  num2str(mse(2)) '    |'])
 disp('-----------------------------------')
-disp(['|  Sce3  |  ' num2str(mean_error(3)) '  |   ' num2str(rmse(3)) '    |'])
+disp(['|  Sce3  |  ' num2str(mean_error(3)) '  |   ' num2str(rmse(3)) '    |'  num2str(mse(3)) '    |'])
 disp('-----------------------------------')
-disp(['|  Sce4  |  ' num2str(mean_error(4)) '  |   ' num2str(rmse(4)) '    |'])
+disp(['|  Sce4  |  ' num2str(mean_error(4)) '  |   ' num2str(rmse(4)) '    |'  num2str(mse(4)) '    |'])
 disp('-----------------------------------')
 
 % %% Plot average results

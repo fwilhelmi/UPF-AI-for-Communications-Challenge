@@ -11,10 +11,10 @@ num_deployments = 50;
 absolute_error = cell(length(scenarios), num_deployments);
 absolute_error_aps = cell(length(scenarios), num_deployments);
 
-name_participant = 'ramon';
+name_participant = 'net_intels_1';
 
 % Path to folders containing output and input files
-solution_path = 'output_simulator/processed_output/';
+solution_path = 'output_simulator/test_data_set/';
 % Path to files submitted by participants
 proposals_path = ['solutions_participants/' name_participant '/'];
 % Path to input files used in simulations
@@ -122,37 +122,37 @@ for sceid=1:length(scenarios)
     mse(sceid) = mean(stacked_error{sceid}.^2);
 end
 
-% %% Plot CDFs
-% fig = figure('pos',[450 400 500 350]);
-% ecdf(abs(stacked_error{1}))%,'Bounds','on')
-% hold on
-% ecdf(abs(stacked_error{2}))%,'Bounds','on')
-% ecdf(abs(stacked_error{3}))%,'Bounds','on')
-% ecdf(abs(stacked_error{4}))%,'Bounds','on')
-% axis([0 max([max(stacked_error{1}) max(stacked_error{2}) ...
-%     max(stacked_error{3}) max(stacked_error{4})]) 0 1])
-% xlabel('Prediction error [Mbps]')
-% ylabel('Empirical CDF(err)')
-% set(gca, 'FontSize', 18)
-% grid on
-% grid minor
-% ax = gca;
-% ax.GridAlpha = 0.5;
-% legend({'Sce1', 'Sce2', 'Sce3', 'Sce4'})
-% 
-% %%
-% fig = figure('pos',[450 400 500 350]);
-% histogram(stacked_error{1})
-% hold on
-% histogram(stacked_error{2})
-% histogram(stacked_error{3})
-% histogram(stacked_error{4})
-% xlabel('Error [Mbps]')
-% ylabel('# Counts')
-% set(gca, 'FontSize', 18)
-% grid on
-% grid minor
-% legend({'Sce1', 'Sce2', 'Sce3', 'Sce4'})
+%% Plot CDFs
+fig = figure('pos',[450 400 500 350]);
+ecdf(abs(stacked_error{1}))%,'Bounds','on')
+hold on
+ecdf(abs(stacked_error{2}))%,'Bounds','on')
+ecdf(abs(stacked_error{3}))%,'Bounds','on')
+ecdf(abs(stacked_error{4}))%,'Bounds','on')
+axis([0 max([max(stacked_error{1}) max(stacked_error{2}) ...
+    max(stacked_error{3}) max(stacked_error{4})]) 0 1])
+xlabel('Prediction error [Mbps]')
+ylabel('Empirical CDF(err)')
+set(gca, 'FontSize', 18)
+grid on
+grid minor
+ax = gca;
+ax.GridAlpha = 0.5;
+legend({'Sce1', 'Sce2', 'Sce3', 'Sce4'})
+
+%%
+fig = figure('pos',[450 400 500 350]);
+histogram(stacked_error{1})
+hold on
+histogram(stacked_error{2})
+histogram(stacked_error{3})
+histogram(stacked_error{4})
+xlabel('Error [Mbps]')
+ylabel('# Counts')
+set(gca, 'FontSize', 18)
+grid on
+grid minor
+legend({'Sce1', 'Sce2', 'Sce3', 'Sce4'})
 
 %% Display table with average results
 disp('-----------------------------------')
@@ -167,27 +167,27 @@ disp('-----------------------------------')
 disp(['|  Sce4  |  ' num2str(mean_error(4)) '  |   ' num2str(rmse(4)) '    |'  num2str(mse(4)) '    |'])
 disp('-----------------------------------')
 
-% %% Plot average results
-% fig = figure('pos',[450 400 550 400]);
-% subplot(1,2,1)
-% bar(mean_error)
-% hold on
-% errorbar(mean_error, std_error, 'r.','linewidth',2.0)
-% xlabel('Scenario ID')
-% ylabel('MAE (Mbps)')
-% set(gca, 'FontSize', 18)
-% axis([0 5 0 max(max(mean_error)+max(std_error), max(rmse))])
-% grid on
-% grid minor
-% ax = gca;
-% ax.GridAlpha = 0.5;
-% subplot(1,2,2)
-% bar(rmse)
-% xlabel('Scenario ID')
-% ylabel('RMSE (Mbps^2)')
-% set(gca, 'FontSize', 18)
-% axis([0 5 0 max(max(mean_error)+max(std_error), max(rmse))])
-% grid on
-% grid minor
-% ax = gca;
-% ax.GridAlpha = 0.5;
+%% Plot average results
+fig = figure('pos',[450 400 550 400]);
+subplot(1,2,1)
+bar(mean_error)
+hold on
+errorbar(mean_error, std_error, 'r.','linewidth',2.0)
+xlabel('Scenario ID')
+ylabel('MAE (Mbps)')
+set(gca, 'FontSize', 18)
+axis([0 5 0 max(max(mean_error)+max(std_error), max(rmse))])
+grid on
+grid minor
+ax = gca;
+ax.GridAlpha = 0.5;
+subplot(1,2,2)
+bar(rmse)
+xlabel('Scenario ID')
+ylabel('RMSE (Mbps^2)')
+set(gca, 'FontSize', 18)
+axis([0 5 0 max(max(mean_error)+max(std_error), max(rmse))])
+grid on
+grid minor
+ax = gca;
+ax.GridAlpha = 0.5;

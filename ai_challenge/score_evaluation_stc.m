@@ -17,7 +17,7 @@ absolute_error_aps = cell(length(scenarios), num_deployments);
 name_participant = 'stc';
 
 % Path to folders containing output and input files
-solution_path = 'output_simulator/processed_output/';
+solution_path = 'output_simulator/test_data_set/';
 % Path to files submitted by participants
 proposals_path = ['solutions_participants/' name_participant '/'];
 % Path to input files used in simulations

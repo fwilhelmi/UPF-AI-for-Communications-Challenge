@@ -24,7 +24,7 @@ proposals_path = ['solutions_participants/' name_participant '/'];
 input_nodes_path = 'input_node_files_test/';
 
 %% Process each file individually
-for sceid=1:length(scenarios)
+for sceid=1:1%length(scenarios)
     
     disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
     disp(['%          SCENARIO ' num2str(sceid) '          %'])
@@ -34,7 +34,7 @@ for sceid=1:length(scenarios)
     filesInputNodes = dir([input_nodes_path scenarios{sceid} '/*.csv']);
     ix = 1;
     B = [];
-    for k=1:50   
+    for k=1:1%50   
         
         file_ok = true;
         
@@ -46,14 +46,17 @@ for sceid=1:length(scenarios)
         numRowsInput = height(datatable2) - 1;    
         % Get location of APs
         ap_locations = [];
-        for i = 1:numRowsInput-1
-            if contains(datatable2{i+1,1}, 'AP')
+        sta_locations = [];
+        for i = 1:numRowsInput+1
+            if contains(datatable2{i,1}, 'AP')
                 ap_locations = [ap_locations i];
+            elseif contains(datatable2{i,1}, 'STA')
+                sta_locations = [sta_locations i];
             end
         end
         
         % Process rows of the output belonging to the analyzed scenario
-        T = readtable([proposals_path name_participant '_sce' num2str(sceid) '.csv'], ...
+        T = readtable([proposals_path 'stc_sce' num2str(sceid) '.csv'], ...
             'Delimiter', ';');
         preprocessed_data  = T(ix:ix+numRowsInput-aps_per_scenario(sceid)-1,1);
         B = zeros(aps_per_scenario(sceid),1);
@@ -120,10 +123,24 @@ for sceid=1:length(scenarios)
     for k=1:num_deployments
         stacked_error{sceid} = [stacked_error{sceid}; absolute_error_aps{sceid,k}];
     end
+    length(stacked_error{sceid});
     mean_error(sceid) = abs(mean(stacked_error{sceid}));
     std_error(sceid) = std(stacked_error{sceid});
     rmse(sceid) = sqrt(mean(stacked_error{sceid}.^2));
 end
+
+%% Display table with average results
+disp('-----------------------------------')
+disp('| SCE_ID |MAE [Mbps]|RMSE [Mbps^2]|')
+disp('-----------------------------------')
+disp(['|  Sce1  |  ' num2str(mean_error(1)) '  |   ' num2str(rmse(1)) '    |'])
+disp('-----------------------------------')
+disp(['|  Sce2  |  ' num2str(mean_error(2)) '  |   ' num2str(rmse(2)) '    |'])
+disp('-----------------------------------')
+disp(['|  Sce3  |  ' num2str(mean_error(3)) '  |   ' num2str(rmse(3)) '    |'])
+disp('-----------------------------------')
+disp(['|  Sce4  |  ' num2str(mean_error(4)) '  |   ' num2str(rmse(4)) '    |'])
+disp('-----------------------------------')
 
 %% Plot CDFs
 fig = figure('pos',[450 400 500 350]);
@@ -143,7 +160,7 @@ ax = gca;
 ax.GridAlpha = 0.5;
 legend({'Sce1', 'Sce2', 'Sce3', 'Sce4'})
 
-%%
+%% Histiogram error
 fig = figure('pos',[450 400 500 350]);
 histogram(stacked_error{1})
 hold on
@@ -157,18 +174,19 @@ grid on
 grid minor
 legend({'Sce1', 'Sce2', 'Sce3', 'Sce4'})
 
-%% Display table with average results
-disp('-----------------------------------')
-disp('| SCE_ID |MAE [Mbps]|RMSE [Mbps^2]|')
-disp('-----------------------------------')
-disp(['|  Sce1  |  ' num2str(mean_error(1)) '  |   ' num2str(rmse(1)) '    |'])
-disp('-----------------------------------')
-disp(['|  Sce2  |  ' num2str(mean_error(2)) '  |   ' num2str(rmse(2)) '    |'])
-disp('-----------------------------------')
-disp(['|  Sce3  |  ' num2str(mean_error(3)) '  |   ' num2str(rmse(3)) '    |'])
-disp('-----------------------------------')
-disp(['|  Sce4  |  ' num2str(mean_error(4)) '  |   ' num2str(rmse(4)) '    |'])
-disp('-----------------------------------')
+%% Boxplot error
+fig = figure('pos',[450 400 500 350]);
+
+x = [stacked_error{1}; stacked_error{2}; stacked_error{3}; stacked_error{4}];
+
+g = [ones(length(stacked_error{1}), 1); 2*ones(length(stacked_error{2}), 1); ...
+    3*ones(length(stacked_error{3}), 1); 4*ones(length(stacked_error{4}), 1)];
+boxplot(x, g)
+xlabel('Scenario ID')
+ylabel('Error [Mbps]')
+set(gca, 'FontSize', 18)
+grid on
+grid minor
 
 %% Plot average results
 fig = figure('pos',[450 400 550 400]);

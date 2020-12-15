@@ -3,6 +3,9 @@ close all
 clear all
 clc
 
+warning('off')
+rmpath('folderthatisnotonpath')
+
 %% Variables
 scenarios = {'test_1', 'test_2', 'test_3', 'test_4'};
 aps_per_scenario = [4 6 8 10];
@@ -11,7 +14,7 @@ num_deployments = 50;
 absolute_error = cell(length(scenarios), num_deployments);
 absolute_error_aps = cell(length(scenarios), num_deployments);
 
-name_participant = 'atari';
+name_participant = 'stc';
 
 % Path to folders containing output and input files
 solution_path = 'output_simulator/test_data_set/';
@@ -23,87 +26,71 @@ input_nodes_path = 'input_node_files_test/';
 %% Process each file individually
 for sceid=1:length(scenarios)
     
-    %disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+    disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
     disp(['%          SCENARIO ' num2str(sceid) '          %'])
-    %disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+    disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
         
     filesSolution = dir([solution_path 'solution_' scenarios{sceid} '/*.csv']);
-    filesParticipant = dir([proposals_path name_participant '_' scenarios{sceid} '/*.csv']);
     filesInputNodes = dir([input_nodes_path scenarios{sceid} '/*.csv']);
-    
-    for k=1:length(filesParticipant)    
+    ix = 1;
+    B = [];
+    for k=1:50   
         
-        %disp([' - Evaluating deployment ' num2str(k) '...'])
-        
-        % Convert the content of each file to an array 
-        outputFileName = filesParticipant(k).name;
-        % Process atari
         file_ok = true;
-        if (strcmp(name_participant, 'atari'))
-            B = [];
-            tempB = [];
-            a = readtable([proposals_path name_participant '_' scenarios{sceid} '/' outputFileName], ...
-                'Delimiter', ',;', 'ReadVariableNames', false);
-            if (size(a,2) == 2)
-                for i = 2 : length(a.Var2)
-                    tempB(i-1) = str2double(a.Var2(i));
-                end
-                B = tempB';
-                file_ok = true;
-            else 
-                file_ok = false;
-            end
-        else
-            data_output = fopen([proposals_path name_participant '_' scenarios{sceid} '/' outputFileName]);
-            A = textscan(data_output,'%s','Delimiter',',;');
-            B = str2double(A{:});
-        end
-               
-        % Find the deployment ID to compare with the input
-        split1 = strsplit(outputFileName,'_');
-        split2 = strsplit(split1{3},'.');
-        deploymentId = str2double(split2{1});
         
-        % Process the solution
-        solutionFileName = filesSolution(k).name;
-        data_solution = fopen([solution_path 'solution_' scenarios{sceid} '/' solutionFileName]);
-        C = textscan(data_solution,'%s','Delimiter',',;');
-        D = str2double(C{:});        
-
+        disp([' - Evaluating deployment ' num2str(k) '...'])
+        
         % Process the input
-        inputFileName = filesInputNodes(deploymentId).name;
+        inputFileName = filesInputNodes(k).name;
         datatable2 = readtable(inputFileName, 'ReadVariableNames', false);  %or true if there is a header
         numRowsInput = height(datatable2) - 1;    
         % Get location of APs
         ap_locations = [];
-        for i = 1:numRowsInput
+        sta_locations = [];
+        for i = 1:numRowsInput+1
             if contains(datatable2{i,1}, 'AP')
                 ap_locations = [ap_locations i];
+            elseif contains(datatable2{i,1}, 'STA')
+                sta_locations = [sta_locations i];
             end
         end
-
-%         fclose(data_output);
-%         fclose(data_solution);
         
+        % Process rows of the output belonging to the analyzed scenario
+        T = readtable([proposals_path 'stc_sce' num2str(sceid) '.csv'], ...
+            'Delimiter', ';');
+        preprocessed_data  = T(ix:ix+numRowsInput-aps_per_scenario(sceid),1);
+        B = zeros(numRowsInput-aps_per_scenario(sceid),1);
+        for i = 1:size(preprocessed_data,1)
+            tmp = preprocessed_data(i,1);
+            tmp2 = tmp{1,1};
+            split1 = strsplit(tmp2{1},',');
+            B(i) = str2double(split1{2});
+        end  
+                           
+        % Process the solution
+        solutionFileName = ['throughput_' num2str(k) '.csv'];
+        data_solution = fopen([solution_path 'solution_' scenarios{sceid} '/' solutionFileName]);
+        C = textscan(data_solution,'%s','Delimiter',',;');
+        D = str2double(C{:});     
+
         % Fill with 0s files that contain errors
         if ~file_ok
             disp(['Error with file ' outputFileName])
             B = zeros(numRowsInput,1);
         end
 
-        if length(B) == aps_per_scenario(sceid) % Only throughput of APs is provided
-            absolute_error_aps{sceid,deploymentId} = abs(B-D(ap_locations));
-        elseif length(B) == numRowsInput % The throughput of all the devices is provided
-            absolute_error{sceid,deploymentId} = abs(B-D);
-            absolute_error_aps{sceid,deploymentId} = abs(B(ap_locations)-D(ap_locations));
+        if length(B) == size(sta_locations,2) % Only throughput of STAs is provided
+            absolute_error_aps{sceid,k} = abs(B-D(sta_locations));
         else % Unknown situation
             disp(['An issue occurred with file: ' outputFileName])            
         end
+        
+        ix = ix+numRowsInput-aps_per_scenario(sceid);
 
     end
 end
 
-%fclose('all');
+fclose('all');
 
 %% Process results and display score (plot results)
 mean_error = zeros(1, length(scenarios));
@@ -116,11 +103,24 @@ for sceid=1:length(scenarios)
     for k=1:num_deployments
         stacked_error{sceid} = [stacked_error{sceid}; absolute_error_aps{sceid,k}];
     end
+    length(stacked_error{sceid});
     mean_error(sceid) = abs(mean(stacked_error{sceid}));
     std_error(sceid) = std(stacked_error{sceid});
     rmse(sceid) = sqrt(mean(stacked_error{sceid}.^2));
-    mse(sceid) = mean(stacked_error{sceid}.^2);
 end
+
+%% Display table with average results
+disp('-----------------------------------')
+disp('| SCE_ID |MAE [Mbps]|RMSE [Mbps^2]|')
+disp('-----------------------------------')
+disp(['|  Sce1  |  ' num2str(mean_error(1)) '  |   ' num2str(rmse(1)) '    |'])
+disp('-----------------------------------')
+disp(['|  Sce2  |  ' num2str(mean_error(2)) '  |   ' num2str(rmse(2)) '    |'])
+disp('-----------------------------------')
+disp(['|  Sce3  |  ' num2str(mean_error(3)) '  |   ' num2str(rmse(3)) '    |'])
+disp('-----------------------------------')
+disp(['|  Sce4  |  ' num2str(mean_error(4)) '  |   ' num2str(rmse(4)) '    |'])
+disp('-----------------------------------')
 
 %% Plot CDFs
 fig = figure('pos',[450 400 500 350]);
@@ -140,7 +140,7 @@ ax = gca;
 ax.GridAlpha = 0.5;
 legend({'Sce1', 'Sce2', 'Sce3', 'Sce4'})
 
-%%
+%% Histiogram error
 fig = figure('pos',[450 400 500 350]);
 histogram(stacked_error{1})
 hold on
@@ -154,18 +154,19 @@ grid on
 grid minor
 legend({'Sce1', 'Sce2', 'Sce3', 'Sce4'})
 
-%% Display table with average results
-disp('-----------------------------------')
-disp('| SCE_ID |MAE [Mbps]|RMSE [Mbps^2]|MSE [Mbps^2]|')
-disp('-----------------------------------')
-disp(['|  Sce1  |  ' num2str(mean_error(1)) '  |   ' num2str(rmse(1)) '    |'  num2str(mse(1)) '    |'])
-disp('-----------------------------------')
-disp(['|  Sce2  |  ' num2str(mean_error(2)) '  |   ' num2str(rmse(2)) '    |'  num2str(mse(2)) '    |'])
-disp('-----------------------------------')
-disp(['|  Sce3  |  ' num2str(mean_error(3)) '  |   ' num2str(rmse(3)) '    |'  num2str(mse(3)) '    |'])
-disp('-----------------------------------')
-disp(['|  Sce4  |  ' num2str(mean_error(4)) '  |   ' num2str(rmse(4)) '    |'  num2str(mse(4)) '    |'])
-disp('-----------------------------------')
+%% Boxplot error
+fig = figure('pos',[450 400 500 350]);
+
+x = [stacked_error{1}; stacked_error{2}; stacked_error{3}; stacked_error{4}];
+
+g = [ones(length(stacked_error{1}), 1); 2*ones(length(stacked_error{2}), 1); ...
+    3*ones(length(stacked_error{3}), 1); 4*ones(length(stacked_error{4}), 1)];
+boxplot(x, g)
+xlabel('Scenario ID')
+ylabel('Error [Mbps]')
+set(gca, 'FontSize', 18)
+grid on
+grid minor
 
 %% Plot average results
 fig = figure('pos',[450 400 550 400]);

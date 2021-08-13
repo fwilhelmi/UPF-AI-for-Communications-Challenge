@@ -109,6 +109,8 @@ for sceid=1:length(scenarios)
     rmse(sceid) = sqrt(mean(stacked_error{sceid}.^2));
 end
 
+save('results_stc_sta','stacked_error')
+
 %% Display table with average results
 disp('-----------------------------------')
 disp('| SCE_ID |MAE [Mbps]|RMSE [Mbps^2]|')

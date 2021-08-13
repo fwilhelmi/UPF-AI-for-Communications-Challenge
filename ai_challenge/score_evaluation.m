@@ -43,10 +43,10 @@ for sceid=1:length(scenarios)
             B = [];
             tempB = [];
             a = readtable([proposals_path name_participant '_' scenarios{sceid} '/' outputFileName], ...
-                'Delimiter', ',;', 'ReadVariableNames', false);
+                'Delimiter', ',', 'ReadVariableNames', false);
             if (size(a,2) == 2)
-                for i = 2 : length(a.Var2)
-                    tempB(i-1) = str2double(a.Var2(i));
+                for i = 1 : length(a.Var2)
+                    tempB(i) = a.Var2(i);
                 end
                 B = tempB';
                 file_ok = true;
@@ -58,7 +58,7 @@ for sceid=1:length(scenarios)
             A = textscan(data_output,'%s','Delimiter',',;');
             B = str2double(A{:});
         end
-               
+        
         % Find the deployment ID to compare with the input
         split1 = strsplit(outputFileName,'_');
         split2 = strsplit(split1{3},'.');
@@ -68,12 +68,12 @@ for sceid=1:length(scenarios)
         solutionFileName = filesSolution(k).name;
         data_solution = fopen([solution_path 'solution_' scenarios{sceid} '/' solutionFileName]);
         C = textscan(data_solution,'%s','Delimiter',',;');
-        D = str2double(C{:});        
-
+        D = str2double(C{:});     
+        
         % Process the input
         inputFileName = filesInputNodes(deploymentId).name;
         datatable2 = readtable(inputFileName, 'ReadVariableNames', false);  %or true if there is a header
-        numRowsInput = height(datatable2) - 1;    
+        numRowsInput = height(datatable2);    
         % Get location of APs
         ap_locations = [];
         for i = 1:numRowsInput
@@ -95,6 +95,10 @@ for sceid=1:length(scenarios)
             absolute_error_aps{sceid,deploymentId} = abs(B-D(ap_locations));
         elseif length(B) == numRowsInput % The throughput of all the devices is provided
             absolute_error{sceid,deploymentId} = abs(B-D);
+            AUX1 = D;
+            AUX1(ap_locations) = 0;
+            MEAN_TPT_STA(sceid,k) = mean(AUX1(AUX1>0));
+            STD_TPT_STA(sceid,k) = std(AUX1(AUX1>0));
             absolute_error_aps{sceid,deploymentId} = abs(B(ap_locations)-D(ap_locations));
         else % Unknown situation
             disp(['An issue occurred with file: ' outputFileName])            
@@ -121,6 +125,10 @@ for sceid=1:length(scenarios)
     rmse(sceid) = sqrt(mean(stacked_error{sceid}.^2));
     mse(sceid) = mean(stacked_error{sceid}.^2);
 end
+
+save(['results_' name_participant], 'mean_error', 'std_error', 'rmse', 'mse')
+
+%save('results_atari_sta','stacked_error')
 
 %% Plot CDFs
 fig = figure('pos',[450 400 500 350]);
@@ -191,3 +199,12 @@ grid on
 grid minor
 ax = gca;
 ax.GridAlpha = 0.5;
+
+
+fig = figure('pos',[450 400 550 400]);
+boxplot(MEAN_TPT_STA');
+grid on
+grid minor
+xlabel('Test scenario ID')
+ylabel('Mean throughput (Mbps)')
+set(gca, 'FontSize', 18)

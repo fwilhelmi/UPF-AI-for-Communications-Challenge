@@ -24,7 +24,7 @@ proposals_path = ['solutions_participants/' name_participant '/'];
 input_nodes_path = 'input_node_files_test/';
 
 %% Process each file individually
-for sceid=1:1%length(scenarios)
+for sceid=1:length(scenarios)
     
     disp('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
     disp(['%          SCENARIO ' num2str(sceid) '          %'])
@@ -34,7 +34,7 @@ for sceid=1:1%length(scenarios)
     filesInputNodes = dir([input_nodes_path scenarios{sceid} '/*.csv']);
     ix = 1;
     B = [];
-    for k=1:1%50   
+    for k=1:50   
         
         file_ok = true;
         
@@ -128,6 +128,8 @@ for sceid=1:length(scenarios)
     std_error(sceid) = std(stacked_error{sceid});
     rmse(sceid) = sqrt(mean(stacked_error{sceid}.^2));
 end
+
+save(['results_' name_participant], 'mean_error', 'std_error', 'rmse')
 
 %% Display table with average results
 disp('-----------------------------------')

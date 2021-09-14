@@ -10,7 +10,7 @@ test_result = 'SUCCESS';
 %% SCE 1 (M = 2)
 
 % Path to folders containing output and input files
-output_path = ['output_simulator_2021/output_11ax_sr_simulations.txt'];
+output_path = ['output_simulator_2021/output_11ax_sr_simulations_s2.txt'];
 
 % Convert the content of each file to an array 
 data_output = fopen(output_path);
@@ -34,13 +34,13 @@ for i = 1 : length(A{1})
         split2 = strsplit(split1{4},'s');
         sceid = str2double(split2{2});
         % Process the input
-        inputFileName = ['input_files_new/input_nodes_s'...
+        inputFileName = ['simulator_input_files_2/input_nodes_s'...
             num2str(sprintf('%04d', sceid)) '_c-62.csv'];
         datatable2 = readtable(inputFileName, 'ReadVariableNames', false);  %or true if there is a header
         numRowsInput = height(datatable2);
         nAps = 0;
         nStas = 0;
-        for j = 2 : numRowsInput
+        for j = 1 : numRowsInput
             if contains(datatable2{j,1},'AP')
                 nAps = nAps + 1;
             elseif contains(datatable2{j,1},'STA') && nAps == 1
@@ -92,17 +92,29 @@ fclose('all');
 %%
 
 figure
-hist(array_tpt)
+histogram(array_tpt)
 xlabel('Throughput [Mbps]')
+ylabel('# counts')
+title('Throughput')
+set(gca,'fontsize',16)
 
 figure
-hist(array_interf)
+histogram(array_interf)
 xlabel('AP interference [dBm]')
+ylabel('# counts')
+set(gca,'fontsize',16)
+title('Inter-AP Interference')
 
 figure
-hist(array_rssi)
+histogram(array_rssi)
 xlabel('RSSI [dBm]')
+ylabel('# counts')
+set(gca,'fontsize',16)
+title('RSSI')
 
 figure
-hist(array_sinr)
+histogram(array_sinr)
 xlabel('SINR [dB]')
+ylabel('# counts')
+set(gca,'fontsize',16)
+title('SINR')

@@ -7,10 +7,12 @@ disp('Running the output checker of the 2021 dataset ...')
 % Default result
 test_result = 'SUCCESS';
 
+sce_id = 2;
+
 %% SCE 1 (M = 2)
 
 % Path to folders containing output and input files
-output_path = ['output_simulator_2021/output_11ax_sr_simulations_s2.txt'];
+output_path = ['output_simulator_2021/output_11ax_sr_simulations_sce' num2str(sce_id) '.txt'];
 
 % Convert the content of each file to an array 
 data_output = fopen(output_path);
@@ -34,7 +36,7 @@ for i = 1 : length(A{1})
         split2 = strsplit(split1{4},'s');
         sceid = str2double(split2{2});
         % Process the input
-        inputFileName = ['simulator_input_files_2/input_nodes_s'...
+        inputFileName = ['simulator_input_files_sce' num2str(sce_id) '/input_nodes_s'...
             num2str(sprintf('%04d', sceid)) '_c-62.csv'];
         datatable2 = readtable(inputFileName, 'ReadVariableNames', false);  %or true if there is a header
         numRowsInput = height(datatable2);
@@ -51,9 +53,9 @@ for i = 1 : length(A{1})
         split1 = strsplit(line{1},',');
         val = str2double(split1);
         % Check NaN values
-%         if sum(isnan(val)) > 0
-%             disp(['NaN value in row ' num2str(i)]); 
-%         end
+        if sum(isnan(val)) > 0
+            disp(['NaN value in row ' num2str(i)]); 
+        end
         % Check the length of each param
         if (row == 1) % per-STA throughput
             if length(val) ~= nStas

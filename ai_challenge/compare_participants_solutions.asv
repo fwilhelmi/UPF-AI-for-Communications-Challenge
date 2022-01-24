@@ -1,0 +1,39 @@
+close all
+clear all
+clc
+
+team_names = {'Predictions', 'FederationS', 'FedIPC', 'WirelessAI'};
+
+load('array_ap_stas.mat')
+
+results_2_sta = {};
+
+figure
+for i = 1 : length(team_names)
+    load(['error_' team_names{i} '.mat'])
+    bss_error{i} = err;
+    results_2_sta{i} = err(array_ap_stas(1:length(err),2) == 2);
+    results_3_sta{i} = err(array_ap_stas(1:length(err),2) == 3);
+    results_4_sta{i} = err(array_ap_stas(1:length(err),2) == 4);    
+    cdfplot(abs(bss_error{i}))
+    hold on
+end
+ylabel('CDF')
+xlabel('Error (Mbps)')
+set(gca,'fontsize',16)
+grid on
+grid minor
+legend(team_names)
+
+%%
+for i = 2 : length(team_names)
+x1 = results_2_sta{1};
+x2 = results_3_sta{1};
+x3 = results_4_sta{1};
+x = [x1; x2; x3];
+g = [zeros(length(x1), i); ones(length(x2), i); 2*ones(length(x3), i)];
+subplot(1,3,)
+boxplot(x, g)
+end
+
+%boxplot([results_2_sta{1}; results_3_sta{1}; results_4_sta{1}])

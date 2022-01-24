@@ -25,6 +25,8 @@ array_interf = [];
 array_rssi = [];
 array_sinr = [];
 
+array_ap_stas = [];
+
 %%
 % Iterate for each subscenario
 for i = 1 : length(A{1})    
@@ -53,6 +55,7 @@ for i = 1 : length(A{1})
                 nStas = nStas + 1;
             end
         end
+        array_ap_stas = [array_ap_stas; [nAps, nStas]];
     else
         split1 = strsplit(line{1},',');
         val = str2double(split1);
@@ -98,29 +101,38 @@ fclose('all');
 %%
 
 figure
+subplot(2,2,1)
 histogram(array_tpt)
 xlabel('Throughput [Mbps]')
 ylabel('# counts')
 title('Throughput')
 set(gca,'fontsize',16)
+grid on
+grid minor
 
-figure
+subplot(2,2,2)
 histogram(array_interf)
 xlabel('AP interference [dBm]')
 ylabel('# counts')
 set(gca,'fontsize',16)
 title('Inter-AP Interference')
+grid on
+grid minor
 
-figure
+subplot(2,2,3)
 histogram(array_rssi)
 xlabel('RSSI [dBm]')
 ylabel('# counts')
 set(gca,'fontsize',16)
 title('RSSI')
+grid on
+grid minor
 
-figure
+subplot(2,2,4)
 histogram(array_sinr)
 xlabel('SINR [dB]')
 ylabel('# counts')
 set(gca,'fontsize',16)
 title('SINR')
+grid on
+grid minor
